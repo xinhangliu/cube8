@@ -1,0 +1,266 @@
+/* LED Structure ******************************************
+                 PAGE0                  PAGE1
+  LAYER0 -> o o o o o o o o        o o o o o o o o
+  LAYER1 -> o o o o o o o o        o o o o o o o o
+  LAYER2 -> o o o o o o o o        o o o o o o o o
+  LAYER3 -> o o o o o o o o        o o o o o o o o
+  LAYER4 -> o o o o o o o o        o o o o o o o o    ...
+  LAYER5 -> o o o o o o o o        o o o o o o o o
+  LAYER6 -> o o o o o o o o        o o o o o o o o
+  LAYER7 -> o o o o o o o o        o o o o o o o o
+            |_____________|        |_____________|
+            0     BUFF    7        0     BUFF    7
+**********************************************************/
+
+#include "driver.h"
+#include "test.h"
+#include <intrins.h>
+#include <reg51.h>
+#define uchar unsigned char
+#define uint unsigned int
+#define BUFF P0   // Pattern buff
+#define LAYERS P1 // Control layers
+#define PAGES P2  // Control pages
+
+uchar i, j, k;
+
+void example1(bit direction, uchar speed) {
+  uchar code pt1[] = {
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x20, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x08, 0x10, 0x00, 0x00, 0x08, 0x12, 0x10,
+      0x08, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00,
+      0x04, 0x00, 0x02, 0x00, 0x40, 0x00, 0x00, 0x08, 0x00, 0x04, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+  uchar code pt2[] = {
+      0x01, 0x00, 0x00, 0x80, 0x10, 0x00, 0x41, 0x00, 0x20, 0x44, 0x4A,
+      0x08, 0x00, 0x42, 0x00, 0x08, 0x00, 0x11, 0x02, 0x01, 0x2A, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x08, 0x10, 0x00, 0x00, 0x08, 0x12, 0x11,
+      0x08, 0x40, 0x40, 0x80, 0x10, 0x00, 0x20, 0x00, 0x18, 0x02, 0x00,
+      0x04, 0x10, 0x02, 0x00, 0x40, 0x04, 0x20, 0x0A, 0x80, 0x04, 0x20,
+      0x10, 0x80, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x02};
+
+  uchar code pt3[] = {
+      0x01, 0x31, 0x00, 0x85, 0x50, 0x24, 0x49, 0x02, 0x26, 0x44, 0x4A,
+      0x28, 0x00, 0x53, 0x50, 0x28, 0xA0, 0x11, 0x02, 0x4B, 0x2A, 0x12,
+      0x02, 0x00, 0x04, 0x40, 0x18, 0x12, 0x02, 0x86, 0x4A, 0x92, 0x51,
+      0x4A, 0x44, 0x44, 0xA0, 0x50, 0x20, 0x28, 0x00, 0x9A, 0x02, 0x12,
+      0x04, 0x32, 0x02, 0x04, 0x41, 0x44, 0x28, 0x8A, 0x80, 0x45, 0xA8,
+      0x50, 0x94, 0x56, 0x02, 0x55, 0x09, 0x93, 0x54, 0xA2};
+
+  uchar code pt4[] = {
+      0x55, 0xB5, 0x12, 0x85, 0x52, 0xA4, 0x4B, 0x52, 0x26, 0x4C, 0x7A,
+      0x28, 0x25, 0x5F, 0x54, 0xB9, 0xBB, 0x75, 0xA7, 0x4B, 0xAB, 0xBA,
+      0x26, 0x4C, 0x54, 0x52, 0x38, 0x3A, 0x46, 0xA6, 0xDA, 0x9B, 0x55,
+      0x4E, 0xCD, 0x54, 0xAB, 0x55, 0x38, 0xAA, 0xAA, 0xBA, 0x2A, 0x32,
+      0x54, 0x32, 0x9E, 0x65, 0x6F, 0x65, 0xAD, 0x8A, 0xA1, 0x45, 0xA9,
+      0x5B, 0x94, 0x56, 0x12, 0x55, 0x59, 0x9B, 0x55, 0xAA};
+
+  uchar code pt5[] = {
+      0x55, 0xB5, 0xDE, 0x95, 0x52, 0xA4, 0x7B, 0x56, 0x76, 0x6C, 0xFE,
+      0xBE, 0xFF, 0x7F, 0x7E, 0xBF, 0xBF, 0x7F, 0xFF, 0xFF, 0xFF, 0xFE,
+      0x7F, 0x7F, 0x7E, 0x7E, 0x7E, 0x3E, 0xFE, 0xFE, 0xFF, 0xFF, 0x7F,
+      0x7E, 0xFF, 0xFE, 0xFF, 0xFF, 0x7F, 0xFE, 0xFE, 0xFE, 0x7E, 0x3F,
+      0x7E, 0x7E, 0xFF, 0x7D, 0x7F, 0x6D, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+      0x7F, 0x94, 0x56, 0x12, 0x55, 0x59, 0xBB, 0x77, 0xBA};
+
+  if (direction) {
+    cube(0);
+    display_loop(pattern, speed * 10);
+    display_loop(pt1, speed * 10);
+    display_loop(pt2, speed * 10);
+    display_loop(pt3, speed * 10);
+    display_loop(pt4, speed * 10);
+    display_loop(pt5, speed * 10);
+    cube(1);
+    display_loop(pattern, speed * 10);
+  } else {
+    cube(1);
+    display_loop(pattern, speed * 10);
+    display_loop(pt5, speed * 10);
+    display_loop(pt4, speed * 10);
+    display_loop(pt3, speed * 10);
+    display_loop(pt2, speed * 10);
+    display_loop(pt1, speed * 10);
+    cube(0);
+    display_loop(pattern, speed * 10);
+  }
+}
+
+void example2() {
+  uchar tmp0, tmp1;
+  cube(0);
+  for (i = 0; i < 8; i++) {
+    shift_y(-1, 1);
+    display_loop(pattern, 8);
+  }
+
+  for (i = 0; i < 4; i++) {
+    cube(0);
+    tmp0 = 7 - i;
+    box(i, i, i, tmp0, tmp0, tmp0, 1);
+    display_loop(pattern, 10);
+  }
+
+  for (i = 0; i < 3; i++) {
+    box(2 - i, 3, 3, 5 + i, 4, 4, 1);
+    box(3, 2 - i, 3, 4, 5 + i, 4, 1);
+    box(3, 3, 2 - i, 4, 4, 5 + i, 1);
+    display_loop(pattern, 10);
+  }
+  for (i = 0; i < 4; i++) {
+    tmp0 = 3 - i;
+    tmp1 = 5 + i;
+    box(tmp0, tmp0, 0, tmp1, tmp1, 0, 1);
+    box(tmp0, tmp0, 7, tmp1, tmp1, 7, 1);
+    box(0, tmp0, tmp0, 0, tmp1, tmp1, 1);
+    box(7, tmp0, tmp0, 7, tmp1, tmp1, 1);
+    box(tmp0, 0, tmp0, tmp1, 0, tmp1, 1);
+    box(tmp0, 7, tmp0, tmp1, 7, tmp1, 1);
+    display_loop(pattern, 10);
+  }
+  for (i = 0; i < 7; i++) {
+    shift_z(-1, 0);
+    display_loop(pattern, 10);
+  }
+
+  cube(0);
+  box(0, 0, 0, 3, 3, 3, 1);
+  box(4, 4, 0, 7, 7, 3, 1);
+  box(4, 0, 4, 7, 4, 7, 1);
+  box(0, 4, 4, 4, 7, 7, 1);
+  display_loop(pattern, 10);
+  for (i = 0; i < 6; i++) {
+    circshift_x(-4);
+    display_loop(pattern, 10);
+  }
+
+  cube(0);
+  for (i = 1; i < 8; i++) {
+    cube(0);
+    frame(0, 0, 0, i, i, i);
+    display_loop(pattern, 10);
+  }
+  for (i = 1; i < 8; i++) {
+    cube(0);
+    frame(i, i, i, 7, 7, 7);
+    display_loop(pattern, 10);
+  }
+  for (i = 6; i != 0xff; i--) {
+    cube(0);
+    frame(i, i, i, 7, 7, 7);
+    display_loop(pattern, 10);
+  }
+
+  for (i = 0; i < 4; i++) {
+    for (j = 0; j < 4; j++) {
+      cube(0);
+      frame(j, j, j, 7 - j, 7 - j, 7 - j);
+      display_loop(pattern, 8);
+    }
+  }
+}
+
+void example3() {
+  uchar code wave[] = {
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x20, 0x20, 0x20,
+      0x20, 0x20, 0x20, 0x20, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70,
+      0x70, 0xF9, 0xF9, 0xF9, 0xF9, 0xF9, 0xF9, 0xF9, 0xF9};
+
+  cube(0);
+  for (i = 0; i < 64; i++) {
+    pattern[i] = wave[i];
+  }
+  display_loop(pattern, 8);
+
+  for (i = 0; i < 8; i++) {
+    shift_y(-1, 1);
+    j = 4;
+    while (j-- != 0) {
+      circshift_x(1);
+      display_loop(pattern, 8);
+    }
+  }
+
+  cube(0);
+  surfacexz(0, 1);
+  display_loop(pattern, 16);
+  for (i = 0; i < 8; i++) {
+    for (j = 0; j < 7; j++) {
+      linez(i, j, 0x00);
+      linez(i, j + 1, 0xff);
+      display_loop(pattern, 4);
+    }
+  }
+
+  for (i = 0; i < 8; i++) {
+    for (j = 0; j < 7; j++) {
+      linex(7 - j, i, 0x00);
+      linex(6 - j, i, 0xff);
+      display_loop(pattern, 4);
+    }
+  }
+
+  for (i = 0; i < 8; i++) {
+    for (j = 0; j < 8; j++) {
+      for (k = 0; k < 7; k++) {
+        dot(i, k, j, 0);
+        dot(i, k + 1, j, 1);
+        display_loop(pattern, 2);
+      }
+    }
+  }
+
+  for (j = 0; j < 6; j++)
+    for (i = 0; i < 8; i++) {
+      linez(i, 7, 0x00);
+      linez(i, 6, 0xff);
+      linex(7, i, 0x00);
+      linex(6, i, 0xff);
+      display_loop(pattern, 4);
+      linez(i, 7, 0xff);
+      linez(i, 6, 0x00);
+      linex(7, i, 0xff);
+      linex(6, i, 0x00);
+    }
+  for (j = 0; j < 3; j++) {
+    dot(4, 0, 4, 1);
+    for (k = 0; k < 7; k++) {
+      display_loop(pattern, 2);
+      dot(4, k, 4, 0);
+      dot(4, k + 1, 4, 1);
+    }
+    for (i = 4; i < 8; i++) {
+      box(7 - i, 7, 7 - i, i, 7, i, 0);
+      display_loop(pattern, i);
+    }
+    dot(3, 0, 3, 1);
+    for (k = 0; k < 7; k++) {
+      display_loop(pattern, 2);
+      dot(3, k, 3, 0);
+      dot(3, k + 1, 3, 1);
+    }
+    for (i = 0; i < 4; i++) {
+      box(i, 7, i, 7 - i, 7, 7 - i, 1);
+      box(i + 1, 7, i + 1, 6 - i, 7, 6 - i, 0);
+      display_loop(pattern, i + 4);
+    }
+  }
+
+  for (i = 0; i < 8; i++) {
+    shift_y(-1, 1);
+    display_loop(pattern, 2 + i);
+  }
+}
+
+void main() {
+  while (1) {
+    example1(1, 2);
+    example2();
+    example3();
+  }
+}
